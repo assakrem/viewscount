@@ -4,135 +4,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Vis</title>
-
-    <style>
-        .visualization {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            background-color: rgb(215, 221, 226);
-            border-radius: 20px;
-            align-items: center;
-        }
-
-        .visualization div {
-            border-radius: 50%;
-            margin: 10px;
-        }
-    </style>
-
+    <title>Firestore</title>
 </head>
 
 <body>
-    <form>
-        <label for="textBlock">Text:</label>
-        <br>
-        <textarea id="textBlock" name="textBlock" rows="4"
-            cols="50">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</textarea>
-        <br>
-        <button type="button" onclick="myFunction()">Submit Text</button>
-    </form>
-
-    <p id="textWithNoPonctuation"></p>
-    <p id="wordsFrequency"></p>
-    <div class="visualization">
-    </div>
-
+    <div class="data"></div>
 </body>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore,collection, doc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<script>
-    var x = document.querySelector("textarea");
-    var y; // split arr
-    let textObj; // word count
-    let arr; // textObj to array
-    let vis = document.querySelector(".visualization");
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMReaOr92zpBNHstITg83ZRvZOnhqq-6Y",
+        authDomain: "testprojectuserviews.firebaseapp.com",
+        projectId: "testprojectuserviews",
+        storageBucket: "testprojectuserviews.appspot.com",
+        messagingSenderId: "239644535493",
+        appId: "1:239644535493:web:b5835b99a9f42f80a01eac",
+        measurementId: "G-0CXELBE7KM"
+    };
 
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const querySnapshot = await getDocs(collection(db, "users"));
+    let allDocs = []
 
-    function myFunction() {
-        y = x.value;
-        y = removePonc(y);
-        y = splitStrg(y);// the array of words of text in sequence
-        textObj = getWordCount(y); // the word count as an object
-        arr = objToArr(textObj); // the word count as an array
-
-        for (let i = 0; i < arr.length; i++) {
-            arr[i].push(getRandomColor());
-        }
-
-        vis.innerHTML = "";
-        for (let i = 0; i < y.length; i++) {
-            for (let j = 0; j < arr.length; j++) {
-                if (y[i] == arr[j][0]) {
-                    let element = createEl(arr[j][1], arr[j][2]);
-                    appendEl(element);
-
-                }
-            }
-
-        }
+querySnapshot.forEach((doc) => {
+  // doc.data() is never undefined for query doc snapshots
+  allDocs.push(
+    {
+        ID: doc.id,
+        Ip: doc.data().Ip,
+        date: doc.data().dateOfEntry
     }
+  );
+  console.log(doc.id, " => ", doc.data());
+});
+    
+let counts = {};
+allDocs.forEach((element) => {
+    counts[element.Ip] = counts[element.Ip] ? counts[element.Ip] + 1 : 1;
+});
+console.log(counts);
 
-    function splitStrg(str) {
-        return str.trim().split(/\s+/);
-        // returns Array
-    }
-
-    function removePonc(str) {
-        return str.replace(/[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]/g, '');
-        // returns text string
-    }
-
-    function numbWords(arr) {
-        return arr.length;
-    }
-
-    function getWordCount(arr) {
-        let map = {};
-        for (let i = 0; i < arr.length; i++) {
-            let item = arr[i];
-            map[item] = (map[item] + 1) || 1;
-        }
-        return map;
-        // returns object, property = word  and  value = count
-    }
-
-    function objToArr(obj) {
-        return Object.keys(obj).map((key) => [key, obj[key]]);
-    }
-
-    function dispObj(obj) {
-        let text = "";
-        for (let [name, amount] of Object.entries(obj)) {
-            text += name + ": " + amount + "<br>";
-        }
-        document.getElementById("wordsFrequency").innerHTML = text;
-    }
-
-    function getRandomColor() {
-        var letters = '0123456789ABCDEF';
-        var color = '#';
-        for (var i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-    }
-
-    function createEl(frequency, c) {
-        const newDiv = document.createElement("div");
-        let size = (20 * frequency)*0.8 || 5;
-        let color = c || getRandomColor();
-
-        newDiv.style.width = size + "px";
-        newDiv.style.height = size + "px";
-        newDiv.style.backgroundColor = color;
-        return newDiv;
-    }
-
-    function appendEl(el) {
-        vis.appendChild(el);
-    }
-
+let htmldata = document.querySelector(".data");
+// Build a Text
+let text = "";
+for (let [fruit, amount] of Object.entries(counts)) {
+  text += fruit + ": " + amount + "<br>";
+}
+htmldata.innerHTML = text;
 
 </script>
 
